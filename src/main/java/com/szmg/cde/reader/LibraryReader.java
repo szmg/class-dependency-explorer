@@ -8,7 +8,6 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.JavaClass;
-import sun.jvm.hotspot.runtime.ClassConstants;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,6 +24,7 @@ public class LibraryReader {
     // https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3
     private static final Pattern PRIMITIVE = Pattern.compile("\\[*[BCDFIJSZ]");
     private static final Logger LOGGER = Logger.getLogger(LibraryReader.class.getName());
+    private int JVM_CONSTANT_Class = 7;
 
     private InputConfig inputConfig;
     private ExtraReferencedClassReader extraReferencedClassReader;
@@ -85,7 +85,7 @@ public class LibraryReader {
 
         Set<String> referencedClasses = new HashSet<>();
         for (Constant constant : constantPool.getConstantPool()) {
-            if (constant != null && constant.getTag() == ClassConstants.JVM_CONSTANT_Class) {
+            if (constant != null && constant.getTag() == JVM_CONSTANT_Class) {
                 String className = constantPool.constantToString(constant);
 
                 if (!PRIMITIVE.matcher(className).matches()) {
