@@ -10,11 +10,9 @@ import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.JavaClass;
 import sun.jvm.hotspot.runtime.ClassConstants;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -29,12 +27,14 @@ public class LibraryReader {
     private static final Logger LOGGER = Logger.getLogger(LibraryReader.class.getName());
 
     private InputConfig inputConfig;
+    private ExtraReferencedClassReader extraReferencedClassReader;
     private ClassMatcher excludedClassMatcher;
     private long libCount;
     private long classCount;
 
-    public LibraryReader(InputConfig inputConfig) {
+    public LibraryReader(InputConfig inputConfig, ExtraReferencedClassReader extraReferencedClassReader) {
         this.inputConfig = inputConfig;
+        this.extraReferencedClassReader = extraReferencedClassReader;
         this.excludedClassMatcher = new ClassMatcher(inputConfig.getExcludedClasses());
     }
 
@@ -45,7 +45,7 @@ public class LibraryReader {
         classCount = 0;
         long start = System.currentTimeMillis();
         try (InputStream inputStream = new FileInputStream(inputConfig.getPath())) {
-            Library library = readLibrary(inputStream, getLibraryNameFromPath(inputConfig.getPath()));
+            Library library = readLibrary(inputStream, getLibraryNameFromPath(inputConfig.getPath()), true);
             long duration = System.currentTimeMillis() - start;
             LOGGER.info(String.format("Finished parsing library. %d zip files and %d classes were parsed in %d ms.",
                     libCount, classCount, duration));
@@ -53,12 +53,13 @@ public class LibraryReader {
         }
     }
 
-    private Library readLibrary(InputStream inputStream, String libName) throws IOException {
+    private Library readLibrary(InputStream inputStream, String libName, boolean rootLib) throws IOException {
         libCount++;
         Set<Library> libs = new HashSet<>();
         Set<Clazz> classes = new HashSet<>();
+        Set<String> extraReferencedClasses = new HashSet<>();
 
-        Library library = new Library(libName, libs, classes, Collections.emptySet());
+        Library library = new Library(libName, libs, classes, extraReferencedClasses);
 
         ZipInputStream zip = new ZipInputStream(inputStream);
         ZipEntry entry;
@@ -67,7 +68,10 @@ public class LibraryReader {
             if (name.endsWith(".class")) {
                 classes.add(readClass(zip, name, library));
             } else if (name.endsWith(".jar")) {
-                libs.add(readLibrary(zip, getLibraryNameFromPath(name)));
+                libs.add(readLibrary(zip, getLibraryNameFromPath(name), false));
+            } else {
+                // the stream has already been consumed for classes and jars :(
+                extraReferencedClasses.addAll(extraReferencedClassReader.readAll(name, zip, libName, rootLib));
             }
         }
 
@@ -103,8 +107,8 @@ public class LibraryReader {
     }
 
     private String getLibraryNameFromPath(String path) {
-        int i = path.lastIndexOf(File.pathSeparator);
-        return i < 0 ? path : path.substring(i);
+        int i = path.lastIndexOf('/');
+        return i < 0 ? path : path.substring(i + 1);
     }
 
 }
