@@ -1,5 +1,6 @@
 package com.szmg.cde.reader;
 
+import com.szmg.cde.ClassMatcher;
 import com.szmg.cde.InputConfig;
 import com.szmg.cde.domain.Clazz;
 import com.szmg.cde.domain.Library;
@@ -28,11 +29,13 @@ public class LibraryReader {
     private static final Logger LOGGER = Logger.getLogger(LibraryReader.class.getName());
 
     private InputConfig inputConfig;
+    private ClassMatcher excludedClassMatcher;
     private long libCount;
     private long classCount;
 
     public LibraryReader(InputConfig inputConfig) {
         this.inputConfig = inputConfig;
+        this.excludedClassMatcher = new ClassMatcher(inputConfig.getExcludedClasses());
     }
 
     // synchronized to get the stats right
@@ -88,7 +91,7 @@ public class LibraryReader {
                         className = className.substring(i + 2, className.length() - 1);
                     }
 
-                    if (!isClassExcluded(className)) {
+                    if (!excludedClassMatcher.matches(className)) {
                         referencedClasses.add(className);
                     }
                 }
@@ -97,15 +100,6 @@ public class LibraryReader {
         }
 
         return new Clazz(javaClass.getClassName(), referencedClasses, library);
-    }
-
-    private boolean isClassExcluded(String fqn) {
-        for (String packageToIgnore : inputConfig.getPackagesToIgnore()) {
-            if (fqn.startsWith(packageToIgnore + ".")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private String getLibraryNameFromPath(String path) {
