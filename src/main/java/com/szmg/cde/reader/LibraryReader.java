@@ -1,7 +1,7 @@
 package com.szmg.cde.reader;
 
 import com.szmg.cde.ClassMatcher;
-import com.szmg.cde.InputConfig;
+import com.szmg.cde.config.InputConfig;
 import com.szmg.cde.domain.Clazz;
 import com.szmg.cde.domain.Library;
 import org.apache.bcel.classfile.ClassParser;

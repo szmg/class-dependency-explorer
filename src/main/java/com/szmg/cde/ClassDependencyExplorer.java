@@ -1,6 +1,8 @@
 package com.szmg.cde;
 
 import com.szmg.cde.analyser.UnusedLibraryFinder;
+import com.szmg.cde.config.InputConfig;
+import com.szmg.cde.config.YamlConfigParser;
 import com.szmg.cde.domain.Library;
 import com.szmg.cde.reader.ExtraReferencedClassReader;
 import com.szmg.cde.reader.LibraryReader;
@@ -16,7 +18,7 @@ public class ClassDependencyExplorer {
     public static void main(String args[]) throws IOException {
         System.out.println("Hello!");
 
-        InputConfig inputConfig = new InputConfig("/Users/mateszvoboda/gitexp/componentsvc/web/target/component-svc-web-58.0-SNAPSHOT.war");
+        InputConfig inputConfig = new YamlConfigParser().parse("config.yaml");
 
         ExtraReferencedClassReader ercr = onlyForRoot(new VeryNaiveSpringXmlReader());
         Library library = new LibraryReader(inputConfig, ercr).readRecursively();

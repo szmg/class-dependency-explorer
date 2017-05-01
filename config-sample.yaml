@@ -1,0 +1,14 @@
+
+path: my.jar
+
+excludedClasses:
+ - "java.*"
+ - "javax.*"
+ - "sun.reflect.*"
+ - "org.ietf.jgss.*"
+ - "org.omg.*"
+ - "org.xml.sax.*"
+ - "org.w3c.dom.*"
+ - "groovy.lang.*"
+ - "org.codehaus.groovy.*"
+ - "*Test"

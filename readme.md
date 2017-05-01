@@ -4,4 +4,6 @@
 
 Simple util to find unused jars in a zip/jar/war file.
 
+A sample config is in config-sample.yaml. Rename it to config.yaml, edit, and run `com.szmg.cde.ClassDependencyExplorer`.
+
 more to come later
